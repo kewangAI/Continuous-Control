@@ -8,15 +8,24 @@ from ddpg_agent import Agent
 
 
 def ddpg(env, agent, n_episodes=1000, max_t=300, print_every=100):
+    brain_name = env.brain_names[0]
+    brain = env.brains[brain_name]
+
     scores_deque = deque(maxlen=print_every)
     scores = []
     for i_episode in range(1, n_episodes + 1):
-        state = env.reset()
+
+        env_info = env.reset(train_mode=True)[brain_name]
+        state = env_info.vector_observations[0]
         agent.reset()
         score = 0
         for t in range(max_t):
             action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
+            env_info = env.step(action)[brain_name]
+            next_state = env_info.vector_observations[0]         # get next state (for each agent)
+            reward = env_info.rewards[0]                         # get reward (for each agent)
+            done = env_info.local_done[0]
+            #next_state, reward, done, _ = env.step(action)
             agent.step(state, action, reward, next_state, done)
             state = next_state
             score += reward
